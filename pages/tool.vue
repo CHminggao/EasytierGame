@@ -144,6 +144,17 @@
 					>
 						查询网卡信息
 					</ElButton>
+					<div class="pl-[10px]">
+						<ElTooltip content="乱码请切换后查询">
+							<ElSwitch
+								v-model="data.textEncoding"
+								style="--el-switch-on-color: #67c23a; --el-switch-off-color: #409eff"
+								active-value="gb2312"
+								inactive-value="utf8"
+							/>
+						</ElTooltip>
+					</div>
+
 					<div
 						v-if="data.row.name"
 						class="ml-auto flex flex-nowrap items-center gap-[10px]"
@@ -292,6 +303,7 @@
 		pingIp: "",
 		isPing: false,
 		pingLog: "",
+		textEncoding: "gb2312",
 		firewallStatus: {
 			domain: false,
 			public: false,
@@ -306,19 +318,18 @@
 		forceBindStart: false
 	});
 
-
 	const handleCloseAllFireWall = async () => {
 		try {
-				const output = await Command.create("netsh", ["advfirewall", "set", "allprofiles", "state", "off"], {
-					encoding: "gb2312"
-				}).execute();
-				ElMessage.success("关闭成功");
-				await initFirewall();
-			} catch (err) {
-				ElMessage.error(`关闭失败${err}`);
-				console.error(err);
-			}
-	}
+			const output = await Command.create("netsh", ["advfirewall", "set", "allprofiles", "state", "off"], {
+				encoding: "gb2312"
+			}).execute();
+			ElMessage.success("关闭成功");
+			await initFirewall();
+		} catch (err) {
+			ElMessage.error(`关闭失败${err}`);
+			console.error(err);
+		}
+	};
 
 	const handleTabsChange = async (tabPaneName: TabPaneName) => {
 		if (tabPaneName === "netcard") {
@@ -352,12 +363,12 @@
 		});
 	};
 
-	const handleTestPing = async (type: 'v4' | 'v6' = 'v4') => {
+	const handleTestPing = async (type: "v4" | "v6" = "v4") => {
 		// const is = isValidIP(data.pingIp);
 		if (data.pingIp) {
 			data.pingLog = "";
 			data.isPing = true;
-			const args = type === 'v4' ? ["-n", "1", data.pingIp] : ["-6", '-n', "1", data.pingIp]
+			const args = type === "v4" ? ["-n", "1", data.pingIp] : ["-6", "-n", "1", data.pingIp];
 			try {
 				for (let i = 0; i < data.pingNum; i++) {
 					const output = await Command.create("ping", args, {
@@ -388,7 +399,7 @@
 	const initNetCardInfo = async () => {
 		try {
 			const output = await Command.create("netsh", ["interface", "ipv4", "show", "interface"], {
-				encoding: "gb2312"
+				encoding: data.textEncoding
 			}).execute();
 			data.netcardList = output.stdout
 				.split("\n")
@@ -505,6 +516,6 @@
 		// initStartWinIpBroadcast();
 		getGuids();
 	});
-	
+
 	dataSubscribe();
 </script>
